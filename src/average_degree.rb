@@ -5,31 +5,30 @@ class AverageDegree
   def initialize(source, destination, time)
     @source = File.read(source)
     @destination = File.open(destination, 'w')
-    @tweet_hashtags = []
+    @time = time
+    @tweets = []
     @edges = []
     @nodes = []
-    @timestamps = []
-    @time = time
     @current_avg = 0.to_s
-    @timestamp = nil
   end
 
   def avg_degree(timestamp, hashtags)
-    @timestamps << timestamp
-    if (hashtags.count > 1) && (timestamp < (@timestamps.first + @time))
-      @tweet_hashtags << hashtags
+    return if @tweets.any? && (timestamp < @tweets.last[0]) && (timestamp < (@tweets.first[0]))
+
+    @tweets << [timestamp, hashtags]
+    @tweets.sort_by {|tweet| tweet[0]}
+    if (hashtags.count > 1) && (timestamp < (@tweets.first[0] + @time))
       add_hashtags_to_nodes_and_edges(hashtags)
       @current_avg = (@edges.count/@nodes.count.to_f).round(2).to_s
       @destination.write(@current_avg + "\n")
-    elsif timestamp < (@timestamps.first + @time)
+    elsif timestamp < (@tweets.first[0] + @time)
       @destination.write(@current_avg + "\n")
     else
-      while timestamp >= (@timestamps.first + @time)
-        @timestamps.shift
-        @tweet_hashtags.shift
+      while timestamp >= (@tweets.first[0] + @time)
+        @tweets.shift
       end
+      @tweets.pop
       reset_nodes_and_edges
-      @timestamps.pop
       avg_degree(timestamp, hashtags)
     end
   end
@@ -37,8 +36,8 @@ class AverageDegree
   def reset_nodes_and_edges
     @edges = []
     @node = []
-    @tweet_hashtags.each do |hashtags_array|
-      add_hashtags_to_nodes_and_edges(hashtags_array)
+    @tweets.each do |tweet|
+      add_hashtags_to_nodes_and_edges(tweet[1])
     end
   end
 
@@ -58,10 +57,9 @@ class AverageDegree
       line = JSON.parse(line)
       return unless line['entities']
       date_string = line['created_at']
-      @timestamp = DateTime.strptime(date_string, "%a %b %d %k:%M:%S %z %Y") if date_string =~ /\d/
+      timestamp = DateTime.strptime(date_string, "%a %b %d %k:%M:%S %z %Y")
       hashtags = line['entities']['hashtags'].map{|hash| hash['text'] }
-      # hashtags = line['text'](scan(/#([A-Za-z0-9]+)/)).flatten.collect {|hashtag| hashtag.downcase}
-      avg_degree(@timestamp, hashtags)
+      avg_degree(timestamp, hashtags)
     end
   end
 end
