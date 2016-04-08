@@ -16,8 +16,7 @@ class AverageDegree
   def avg_degree(timestamp, hashtags)
     return if @tweets.any? && (timestamp < (@tweets.first[0]))
 
-    @tweets << [timestamp, hashtags]
-    @tweets.sort_by {|tweet| tweet[0]}
+    add_tweet_to_tweets_in_order(timestamp, hashtags)
     if (hashtags.count > 1) && tweet_within_timeframe?(timestamp)
       add_hashtags_to_nodes_and_edges(hashtags)
       calculate_current_average
@@ -32,6 +31,11 @@ class AverageDegree
       reset_nodes_and_edges
       avg_degree(timestamp, hashtags)
     end
+  end
+
+  def add_tweet_to_tweets_in_order(timestamp, hashtags)
+    @tweets << [timestamp, hashtags]
+    @tweets.sort_by! {|tweet| tweet[0]}
   end
 
   def tweet_within_timeframe?(timestamp)

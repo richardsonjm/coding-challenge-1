@@ -10,6 +10,23 @@ describe AverageDegree do
 
   subject { @average_degree }
 
+  describe "#add_tweet_to_tweets_in_order" do
+    before do
+      @tweet1 = [DateTime.now, %w(foo bar)]
+      @tweet2 = [DateTime.now + 30, %w(bar baz)]
+      subject.instance_variable_set(:@tweets, [@tweet1, @tweet2])
+    end
+
+    it "adds tweet to tweets in correct order" do
+      tweet3 = [DateTime.now + 15, %w(foo baz)]
+      subject.add_tweet_to_tweets_in_order(tweet3[0], tweet3[1])
+      tweets = subject.instance_variable_get(:@tweets)
+      expect(tweets[0]).to eq @tweet1
+      expect(tweets[2]).to eq @tweet2
+      expect(tweets[1]).to eq tweet3
+    end
+  end
+
   describe "#tweet_within_timeframe?" do
     before do
       tweets = [[DateTime.now, ['foo', 'bar']]]
@@ -31,7 +48,6 @@ describe AverageDegree do
       edges = [['foo','bar'],['foo','baz'],['bar','baz'],['moe','mop']]
       subject.instance_variable_set(:@edges, edges)
       subject.calculate_current_average
-      p
       expect(subject.instance_variable_get(:@current_avg)).to eq '1.60'
     end
   end
