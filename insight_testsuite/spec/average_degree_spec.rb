@@ -51,4 +51,25 @@ describe AverageDegree do
       expect(subject.instance_variable_get(:@current_avg)).to eq '1.60'
     end
   end
+
+  describe "#add_hashtags_to_nodes_and_edges" do
+    before do
+      subject.instance_variable_set(:@nodes, %w(foo bar baz moe mop))
+      edges = [['foo','bar'],['foo','baz'],['bar','baz'],['moe','mop']]
+      subject.instance_variable_set(:@edges, edges)
+      @hashtags = %w(foo moe mod)
+    end
+
+    it "add news edges" do
+      subject.add_hashtags_to_nodes_and_edges(@hashtags)
+      edges = [["foo","bar"],["foo","baz"],["bar","baz"],["moe","mop"],["foo","moe"],["foo","mod"],["moe","mod"]]
+      expect(subject.instance_variable_get(:@edges)).to eq edges
+    end
+
+    it "add news nodes" do
+      subject.add_hashtags_to_nodes_and_edges(@hashtags)
+      nodes = ["foo", "bar", "baz", "moe", "mop", "mod"]
+      expect(subject.instance_variable_get(:@nodes)).to eq nodes
+    end
+  end
 end
