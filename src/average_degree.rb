@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'JSON'
+require 'date'
 
 class AverageDegree
   def initialize(source, destination, time)
