@@ -17,12 +17,12 @@ class AverageDegree
 
     @tweets << [timestamp, hashtags]
     @tweets.sort_by {|tweet| tweet[0]}
-    if (hashtags.count > 1) && (timestamp < (@tweets.first[0] + @time))
+    if (hashtags.count > 1) && tweet_within_timeframe?(timestamp)
       add_hashtags_to_nodes_and_edges(hashtags)
-      @current_avg = (@edges.count/@nodes.count.to_f).round(2).to_s
-      @destination.write(@current_avg + "\n")
-    elsif timestamp < (@tweets.first[0] + @time)
-      @destination.write(@current_avg + "\n")
+      calculate_current_average
+      write_current_average
+    elsif tweet_within_timeframe?(timestamp)
+      write_current_average
     else
       while timestamp >= (@tweets.first[0] + @time)
         @tweets.shift
@@ -31,6 +31,24 @@ class AverageDegree
       reset_nodes_and_edges
       avg_degree(timestamp, hashtags)
     end
+  end
+
+  def tweet_within_timeframe?(timestamp)
+    timestamp < (@tweets.first[0] + @time)
+  end
+
+  def write_current_average
+    @destination.write(@current_avg + "\n")
+  end
+
+  def calculate_current_average
+    node_edges = 0
+    @nodes.each do |node|
+      @edges.each do |edge|
+        node_edges += 1 if edge.include? node
+      end
+    end
+    @current_avg = "%.2f" % (node_edges/@nodes.count.to_f)
   end
 
   def reset_nodes_and_edges
@@ -43,10 +61,13 @@ class AverageDegree
 
   def add_hashtags_to_nodes_and_edges(hashtags)
     hashtags.each_with_index do |hashtag, index|
-      return unless hashtags[index + 1]
-      edge = [hashtags[index], hashtags[index + 1]]
-      if !@edges.include?(edge) && !@edges.include?(edge.reverse)
-        @edges.concat(edge)
+      i = 0
+      while i < hashtags.length && hashtags[i + 1] && hashtags[i + 1] != hashtag
+        edge = [hashtag, hashtags[i + 1]]
+        if !@edges.include?(edge) && !@edges.include?(edge.reverse)
+          @edges << edge
+        end
+        i+=1
       end
       @nodes << hashtag unless @nodes.include? hashtag
     end
