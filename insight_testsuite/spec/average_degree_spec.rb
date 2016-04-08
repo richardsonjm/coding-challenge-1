@@ -72,4 +72,39 @@ describe AverageDegree do
       expect(subject.instance_variable_get(:@nodes)).to eq nodes
     end
   end
+
+  describe "#avg_degree" do
+    before do
+      @tweet1 = [DateTime.now, %w(foo bar)]
+      @tweet2 = [DateTime.now + 30, %w(bar baz)]
+      subject.instance_variable_set(:@tweets, [@tweet1, @tweet2])
+      subject.instance_variable_set(:@current_avg, "1.33")
+      file = double(File, open: 'stubbed open')
+      subject.instance_variable_set(:@destination, file)
+      allow(file).to receive(:write).and_return("foo")
+    end
+
+    it "skips new tweets older than oldest tweet" do
+      tweet3 = [DateTime.now - 1, %w(kit car)]
+      expect(subject).not_to receive(:add_tweet_to_tweets_in_order)
+      subject.avg_degree(tweet3[0], tweet3[1])
+      expect(subject.instance_variable_get(:@tweets)).to eq [@tweet1, @tweet2]
+    end
+
+    it "adds new multi-hashtag tweets and re-calculates avg" do
+      tweet3 = [DateTime.now + 45, %w(kit car)]
+      expect(subject).to receive(:add_hashtags_to_nodes_and_edges).with(tweet3[1])
+      expect(subject).to receive(:calculate_current_average)
+      expect(subject).to receive(:write_current_average)
+      subject.avg_degree(tweet3[0], tweet3[1])
+    end
+
+    it "adds writes current avg for non-multi-hashtag tweets" do
+      tweet3 = [DateTime.now + 45, %w(kit)]
+      expect(subject).not_to receive(:add_hashtags_to_nodes_and_edges)
+      expect(subject).not_to receive(:calculate_current_average)
+      expect(subject).to receive(:write_current_average)
+      subject.avg_degree(tweet3[0], tweet3[1])
+    end
+  end
 end
