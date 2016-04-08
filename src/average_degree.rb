@@ -62,9 +62,9 @@ class AverageDegree
 
   def add_hashtags_to_nodes_and_edges(hashtags)
     hashtags.each_with_index do |hashtag, index|
-      i = 0
-      while i < hashtags.length && hashtags[i + 1] && hashtags[i + 1] != hashtag
-        edge = [hashtag, hashtags[i + 1]]
+      i = 1
+      while hashtags[index + i]
+        edge = [hashtag, hashtags[index + i]]
         if !@edges.include?(edge) && !@edges.include?(edge.reverse)
           @edges << edge
         end
