@@ -14,7 +14,7 @@ class AverageDegree
   end
 
   def avg_degree(timestamp, hashtags)
-    return if @tweets.any? && (timestamp < @tweets.last[0]) && (timestamp < (@tweets.first[0]))
+    return if @tweets.any? && (timestamp < (@tweets.first[0]))
 
     @tweets << [timestamp, hashtags]
     @tweets.sort_by {|tweet| tweet[0]}
