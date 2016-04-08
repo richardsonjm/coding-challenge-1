@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ruby ./src/average_degree.rb
+ruby ./src/run.rb

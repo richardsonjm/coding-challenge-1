@@ -85,5 +85,3 @@ class AverageDegree
     end
   end
 end
-
-AverageDegree.new('./tweet_input/tweets.txt', './tweet_output/output.txt', 60).run
